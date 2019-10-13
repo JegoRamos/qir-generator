@@ -2,36 +2,9 @@ const PDFDocument = require('pdfkit')
 const fs = require('fs')
 const path = require('path')
 
-module.exports.createPdf = () => {
+module.exports.createPdf = docDetails => {
   return new Promise((resolve, reject) => {
     try {
-      const docDetails = {
-        inspector: 'Jeg Ramos',
-        network: 'SMA',
-        date: 'November 1, 2019',
-        controlNo: 'PETC-QIR/2019/07',
-        model: 'SM-G970X',
-        productCode: 'SM-G970XPROD',
-        imei: '9405803009345',
-        serialNo: '7684F99340F992',
-        plantOrigin: 'PLANT',
-        shipmentDate: 'June 4, 1997',
-        softwareVer: {
-          ap: 'APG970XLLAJJDOEJJFA',
-          cp: 'CP9900JFHHGLLDSDFDD',
-          csc: 'CSC9993485345080KO'
-        },
-        hardwareVer: 'REV 02',
-        defectDetails: 'Scratch on back',
-        images: [
-          //'C:\\Users\\Blackpearl\\Desktop\\images.jpeg',
-          'C:\\Users\\Blackpearl\\Desktop\\sample.jpg',
-          'C:\\Users\\Blackpearl\\Desktop\\358244105520888_20190126_170639_92890358233407929.jpg',
-          'C:\\Users\\Blackpearl\\Desktop\\358244105520888_20190126_170655_366305818061140044.jpg',
-          'C:\\Users\\Blackpearl\\Desktop\\358244105520888_20190126_170717_6638663218806774812.jpg',
-        ]
-      }
-
       const FONT_BOLD = path.join(__dirname, '../../', 'resources', 'fonts', 'ArialCEBold.ttf')
       const FONT_NORMAL = path.join(__dirname, '../../', 'resources', 'fonts', 'ArialCE.ttf')
       const FONT_ITALICS = path.join(__dirname, '../../', 'resources', 'fonts', 'ArialCEItalic.ttf')
@@ -44,7 +17,8 @@ module.exports.createPdf = () => {
       })
 
       // Pipe its output somewhere, like to a file or HTTP response
-      doc.pipe(fs.createWriteStream('output.pdf'))
+      const fileName = docDetails.controlNo.split('/').join('_') + '.pdf'
+      doc.pipe(fs.createWriteStream(path.join(__dirname, '../..', 'out', fileName)))
 
       // add page
       doc.addPage({
@@ -181,9 +155,9 @@ module.exports.createPdf = () => {
 
       // Finalize PDF file
       doc.end()
-      resolve('Generation completed')
+      resolve('Generation completed: ' + docDetails.controlNo)
     } catch (error) {
-      reject(error)
+      reject(error + ': ' + docDetails.controlNo)
     }
   })
 }

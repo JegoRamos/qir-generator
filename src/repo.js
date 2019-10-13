@@ -2,40 +2,15 @@ const glob = require('glob')
 const exifReader = require('./utils/exifReader')
 const moment = require('moment')
 const axios = require('axios')
+const readXlsxFile = require('read-excel-file/node')
+const path = require('path')
 
-module.exports.getqQrsInWeek = () => {
+module.exports.getAllQirs = () => {
   return new Promise((resolve, reject) => {
-    glob('resources/images/*', (err, weekDirs) => {
-      let iter = 0
-      let qirList = []
+    glob('resources/images/**/QIR *', (err, qirPaths) => {
       if (err) { reject(err) }
       else {
-        weekDirs.forEach(weekDir => {
-          glob(weekDir + '/*', (err, plantOrigins) => {
-            if (err) { reject(err) }
-            else {
-              plantOrigins.forEach(plantOrigin => {
-                glob(plantOrigin + '/*', (err, models) => {
-                  if (err) { reject(err) }
-                  else {
-                    models.forEach(model => {
-                      glob(model + '/*', (err, qirs) => {
-                        if (err) { reject(err) }
-                        else {
-                          qirList.push(...qirs)
-                          iter += 1
-                          if (iter >= plantOrigins.length) {
-                            resolve(qirList)
-                          }
-                        }
-                      })
-                    })
-                  }
-                })
-              })
-            }
-          })
-        })
+        resolve(qirPaths)
       }
     })
   })
@@ -44,10 +19,11 @@ module.exports.getqQrsInWeek = () => {
 module.exports.getQirNumber = qirDir => {
   try {
     const splittedFilename = qirDir.split('/')
-    const qirNum = splittedFilename[5].split(" ")[1]
+    // console.log(splittedFilename)
+    const qirNum = splittedFilename[4].split(" ")[1]
     return qirNum
   } catch (err) {
-    console.err(err)
+    console.error(err)
     return -1
   }
 }
@@ -105,13 +81,50 @@ module.exports.getBatchField = (batchId, fieldName) => {
     const BASE_URL = 'http://13.229.230.121/batch?id='
     axios.get(BASE_URL + batchId)
       .then(res => {
-        const data = JSON.parse(res.data.replace(/&quot;/g, '"'))
-        resolve(data[fieldName])
+        try {
+          const data = JSON.parse(res.data.replace(/&quot;/g, '"'))
+          resolve(data[fieldName])
+        } catch (error) {
+          reject(error)
+        }
       })
       .catch(err => reject(err))
   })
 }
 
-module.exports.getFormattedDate = () => {
+module.exports.getFormattedDate = (date = null) => {
+  if (date != null) {
+    return moment(date).format('MMMM DD, YYYY')
+  }
   return moment().format('MMMM DD, YYYY')
+}
+
+module.exports.getFormattedInspector = rawInspector => {
+  const lastname = rawInspector.split('-')[3]
+  const firstname = rawInspector.split('-')[4]
+  return `${firstname} ${lastname}`
+}
+
+module.exports.getFormattedControlNo = rawControlNo => {
+  const year = moment().year()
+  return `PETC-QIR/${year}/${rawControlNo}`
+}
+
+module.exports.getDefectDetailsAndSerialNum = (imei, qirDir) => {
+  return new Promise((resolve, reject) => {
+    readXlsxFile(path.join(__dirname, '..', 'resources', 'excel', 'WEEK 41.xlsx')).then(rows => {
+      let index = 0
+      for (let row of rows) {
+        if (row[0] == imei) {
+          resolve([row[1], row[2]])
+          return
+        }
+        index += 1
+        if (index >= rows.length) {
+          console.log(imei + ' - Not found in excel -' + qirDir)
+          reject([null, null])
+        }
+      }
+    })
+  })
 }

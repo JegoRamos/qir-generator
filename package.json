@@ -15,6 +15,8 @@
     "jpeg-exif": "^1.1.4",
     "moment": "^2.24.0",
     "pdfkit": "^0.10.0",
+    "piexifjs": "^1.0.6",
+    "read-excel-file": "^4.0.3",
     "yargs": "^14.2.0"
   },
   "devDependencies": {
