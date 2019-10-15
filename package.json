@@ -10,6 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.19.0",
+    "exif-parser": "^0.1.12",
+    "exiftool-vendored": "^8.22.0",
     "filehound": "^1.17.3",
     "glob": "^7.1.4",
     "jpeg-exif": "^1.1.4",

@@ -81,7 +81,7 @@ module.exports.createPdf = docDetails => {
 
       // ? IMEI
       doc.moveDown().font(FONT_BOLD).text('IMEI:  ', 35, undefined, { continued: true })
-        .font(FONT_NORMAL).text(docDetails.imei)
+        .font(FONT_NORMAL).text(docDetails.imei.join(', '))
 
       // ? CP
       doc.moveUp().font(FONT_BOLD).text('CP:  ', 390, undefined, { continued: true })

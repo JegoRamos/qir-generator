@@ -19,7 +19,6 @@ module.exports.getAllQirs = () => {
 module.exports.getQirNumber = qirDir => {
   try {
     const splittedFilename = qirDir.split('/')
-    // console.log(splittedFilename)
     const qirNum = splittedFilename[4].split(" ")[1]
     return qirNum
   } catch (err) {
@@ -48,6 +47,50 @@ module.exports.getPlantOrigin = qirDir => {
   }
 }
 
+module.exports.getImei = qirDir => {
+  return new Promise((resolve, reject) => {
+    glob(qirDir + '/*', async (err, imagePaths) => {
+      if (err) { reject(err) }
+      else {
+        let count = 0
+        const metaDataList = []
+        for (const imagePath of imagePaths) {
+          try {
+            const metaData = await exifReader.getMetaData(imagePath)
+            // metaDataList.push(metaData.SubExif.UserComment)
+            metaDataList.push(metaData.tags.UserComment)
+            count += 1
+            if (count >= imagePaths.length) {
+              const imeiList = []
+              for (const userComment of metaDataList) {
+                try {
+                  imeiList.push((JSON.parse(userComment).imei))
+                } catch (error) {
+                  console.error('Unable to parse meta-data(imei): ' + imagePath)
+                }
+              }
+              const imeiSet = new Set(imeiList)
+              const imeiUniqList = Array.from(imeiSet)
+              if (imeiUniqList.length === 1) {
+                resolve(imeiUniqList)
+              } else if (imeiUniqList.length === 2) {
+                console.log('Possible IMEI mismatch issue: ' + qirDir)
+                resolve(imeiUniqList)
+              } else if (imeiUniqList.length === 0) {
+                reject('No IMEI meta-data found on images')
+              } else {
+                reject('3 or more different IMEIs found in images')
+              }
+            }
+          } catch (error) {
+            reject(error + 'getMetaData')
+          }
+        }
+      }
+    })
+  })
+}
+
 module.exports.getMetaDataField = (qirDir, fieldName) => {
   return new Promise((resolve, reject) => {
     glob(qirDir + '/*', async (err, imagePaths) => {
@@ -56,19 +99,33 @@ module.exports.getMetaDataField = (qirDir, fieldName) => {
         let count = 0
         const metaDataList = []
         for (const imagePath of imagePaths) {
-          const metaData = await exifReader.getMetaData(imagePath)
-          metaDataList.push(metaData.SubExif.UserComment)
-          count += 1
-          if (count >= imagePaths.length) {
-            let imeiList = []
-            for (let userComment of metaDataList) {
-              imeiList.push(JSON.parse(userComment)[fieldName])
+          try {
+            const metaData = await exifReader.getMetaData(imagePath)
+            // metaDataList.push(metaData.SubExif.UserComment)
+            metaDataList.push(metaData.tags.UserComment)
+            count += 1
+            if (count >= imagePaths.length) {
+              let metaDataTags = []
+              for (let userComment of metaDataList) {
+                try {
+                  metaDataTags.push(JSON.parse(userComment)[fieldName])
+                } catch (error) {
+                  console.error(`Unable to parse meta-data(${fieldName}): ` + imagePath)
+                }
+              }
+              const metaDataTagsSet = new Set(metaDataTags)
+              const metaDataTagsListUniq = Array.from(metaDataTagsSet)
+              if (metaDataTagsListUniq.length === 1) {
+                resolve(metaDataTags[0])
+              } else if (metaDataTagsListUniq.length === 0) {
+                reject(`No meta-data tag '${fieldName}' found in images`)
+              } else {
+                console.log(`Some images have different: ${fieldName} - ${qirDir}`)
+                resolve(metaDataTags[0])
+              }
             }
-            if (imeiList.every((val, i, arr) => val == arr[0])) {
-              resolve(imeiList[0])
-            } else {
-              reject(`Some images have different IMEIs: ${qirDir}`)
-            }
+          } catch (error) {
+            reject(error + ' getMetaData')
           }
         }
       }
@@ -85,7 +142,7 @@ module.exports.getBatchField = (batchId, fieldName) => {
           const data = JSON.parse(res.data.replace(/&quot;/g, '"'))
           resolve(data[fieldName])
         } catch (error) {
-          reject(error)
+          reject(error + ' getBatchId')
         }
       })
       .catch(err => reject(err))
@@ -112,7 +169,7 @@ module.exports.getFormattedControlNo = rawControlNo => {
 
 module.exports.getDefectDetailsAndSerialNum = (imei, qirDir) => {
   return new Promise((resolve, reject) => {
-    readXlsxFile(path.join(__dirname, '..', 'resources', 'excel', 'WEEK 41.xlsx')).then(rows => {
+    readXlsxFile(path.join(__dirname, '..', 'resources', 'excel', 'excel.xlsx')).then(rows => {
       let index = 0
       for (let row of rows) {
         if (row[0] == imei) {

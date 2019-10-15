@@ -7,8 +7,9 @@ repo.getAllQirs()
       try {
         const rawControlNo = repo.getQirNumber(qir)
         const controlNo = repo.getFormattedControlNo(rawControlNo)
-        const imei = await repo.getMetaDataField(qir, 'imei')
-        const batchId = await repo.getMetaDataField(qir, 'batchId')
+        const imei = await repo.getImei(qir)
+        // const batchId = await repo.getMetaDataField(qir, 'batchId')
+        const batchId = 'BTC-2019-40-SM-A705MZKWXTC-B2B-12 00:07:19'
         const rawInspector = await repo.getMetaDataField(qir, 'inspector')
         const inspector = repo.getFormattedInspector(rawInspector)
         const date = repo.getFormattedDate()
@@ -23,7 +24,7 @@ repo.getAllQirs()
         const rawDate = await repo.getBatchField(batchId, 'shipment_date')
         const shipmentDate = repo.getFormattedDate(rawDate)
         const images = await repo.getImagePaths(qir)
-        const [defectDetails, serialNo] = await repo.getDefectDetailsAndSerialNum(imei, qir)
+        const [defectDetails, serialNo] = await repo.getDefectDetailsAndSerialNum(imei[0])
 
         const docDetails = {
           controlNo, imei, batchId, date, model, productCode,
