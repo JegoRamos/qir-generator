@@ -1,5 +1,6 @@
 const glob = require('glob')
 const exifReader = require('./utils/exifReader')
+const normalizeByteArray = require('./utils/normalizeByteArray')
 const moment = require('moment')
 const axios = require('axios')
 const readXlsxFile = require('read-excel-file/node')
@@ -38,15 +39,6 @@ module.exports.getImagePaths = qirDir => {
   })
 }
 
-module.exports.getPlantOrigin = qirDir => {
-  try {
-    return qirDir.split('/')[3]
-  } catch (err) {
-    console.err(err)
-    return -1
-  }
-}
-
 module.exports.getImei = qirDir => {
   return new Promise((resolve, reject) => {
     glob(qirDir + '/*', async (err, imagePaths) => {
@@ -57,8 +49,8 @@ module.exports.getImei = qirDir => {
         for (const imagePath of imagePaths) {
           try {
             const metaData = await exifReader.getMetaData(imagePath)
-            // metaDataList.push(metaData.SubExif.UserComment)
-            metaDataList.push(metaData.tags.UserComment)
+            const strXPComment = normalizeByteArray.convertToString(metaData.tags.XPComment)
+            metaDataList.push(strXPComment)
             count += 1
             if (count >= imagePaths.length) {
               const imeiList = []
@@ -101,8 +93,8 @@ module.exports.getMetaDataField = (qirDir, fieldName) => {
         for (const imagePath of imagePaths) {
           try {
             const metaData = await exifReader.getMetaData(imagePath)
-            // metaDataList.push(metaData.SubExif.UserComment)
-            metaDataList.push(metaData.tags.UserComment)
+            const strXPComment = normalizeByteArray.convertToString(metaData.tags.XPComment)
+            metaDataList.push(strXPComment)
             count += 1
             if (count >= imagePaths.length) {
               let metaDataTags = []
@@ -133,13 +125,31 @@ module.exports.getMetaDataField = (qirDir, fieldName) => {
   })
 }
 
+module.exports.getPlantOrigin = serialNo => {
+  if (serialNo === null) {
+    console.error('Unable retrieve Plant Origin because Serial No is null')
+    return null
+  }
+  const strChecker = serialNo.substring(0, 2).toLowerCase()
+  if (strChecker === 'r9') {
+    return 'JDM'
+  } else if (strChecker === 'rr') {
+    return 'SEIN'
+  } else if (strChecker === 'rf') {
+    return 'SEV'
+  } else if (strChecker === 'r5') {
+    return 'SEVT'
+  }
+  return null
+}
+
 module.exports.getBatchField = (batchId, fieldName) => {
   return new Promise((resolve, reject) => {
     const BASE_URL = 'http://13.229.230.121/batch?id='
     axios.get(BASE_URL + batchId)
       .then(res => {
         try {
-          const data = JSON.parse(res.data.replace(/&quot;/g, '"'))
+          const data = res.data
           resolve(data[fieldName])
         } catch (error) {
           reject(error + ' getBatchId')
@@ -178,8 +188,7 @@ module.exports.getDefectDetailsAndSerialNum = (imei, qirDir) => {
         }
         index += 1
         if (index >= rows.length) {
-          console.log(imei + ' - Not found in excel -' + qirDir)
-          reject([null, null])
+          reject(imei + ' - Not found in excel -' + qirDir)
         }
       }
     })

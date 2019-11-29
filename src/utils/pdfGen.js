@@ -114,10 +114,10 @@ module.exports.createPdf = docDetails => {
       doc.moveDown(2).font(FONT_BOLD).fontSize(10).text('PHOTOS:  ', 35, undefined)
 
       // ? IMAGE 1
-      doc.moveDown().image(docDetails.images[0], 35, undefined, { fit: [250, 250] })
+      doc.image(docDetails.images[0], 35, 450, { fit: [250, 250], align: 'center', valign: 'center' })
 
       // ? IMAGE 2
-      doc.moveUp(16.3).image(docDetails.images[1], 320, undefined, { fit: [250, 250] })
+      doc.image(docDetails.images[1], 320, 450, { fit: [250, 250], align: 'center', valign: 'center' })
 
       doc.fontSize(7).font(FONT_ITALICS).text('--------------------  Page 1 of 2 -------------------- ', 35, 750, { align: 'center' })
 
@@ -132,17 +132,17 @@ module.exports.createPdf = docDetails => {
       })
 
       // ? IMAGE 3
-      doc.moveDown().image(docDetails.images[2], 35, undefined, { fit: [250, 250] })
+      doc.image(docDetails.images[2], 35, 50, { fit: [250, 250], align: 'center', valign: 'center' })
 
       // ? IMAGE 4
-      doc.moveUp(23.2).image(docDetails.images[3], 320, undefined, { fit: [250, 250] })
+      doc.image(docDetails.images[3], 320, 50, { fit: [250, 250], align: 'center', valign: 'center' })
 
       // ? Prepared by
-      doc.moveDown(13).font(FONT_BOLD).fontSize(10).text('PREPARED BY:', 35, undefined)
+      doc.font(FONT_BOLD).fontSize(10).text('PREPARED BY:', 35, 380)
       doc.moveDown(5).font(FONT_NORMAL).text(docDetails.inspector, 35)
 
       // ? Noted by
-      doc.moveUp(7.3).font(FONT_BOLD).fontSize(10).text('NOTED BY:', 370, undefined)
+      doc.font(FONT_BOLD).fontSize(10).text('NOTED BY:', 370, 380)
       doc.moveDown(5).font(FONT_NORMAL).text(PRE_DEF.notedBy.name, 370)
       doc.moveDown(0.3).fontSize(8).font(FONT_ITALICS).text(PRE_DEF.notedBy.title, 370)
 
