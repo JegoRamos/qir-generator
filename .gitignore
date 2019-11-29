@@ -1,3 +1,5 @@
 node_modules
 resources/images
+out
+!out/.gitkeep
 !resources/images/.gitkeep

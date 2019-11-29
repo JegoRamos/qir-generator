@@ -10,11 +10,15 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.19.0",
+    "exif-parser": "^0.1.12",
+    "exiftool-vendored": "^8.22.0",
     "filehound": "^1.17.3",
     "glob": "^7.1.4",
     "jpeg-exif": "^1.1.4",
     "moment": "^2.24.0",
     "pdfkit": "^0.10.0",
+    "piexifjs": "^1.0.6",
+    "read-excel-file": "^4.0.3",
     "yargs": "^14.2.0"
   },
   "devDependencies": {
