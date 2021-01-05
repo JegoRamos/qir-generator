@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.19.0",
+    "axios": "^0.21.1",
     "exif-parser": "^0.1.12",
     "exiftool-vendored": "^8.22.0",
     "filehound": "^1.17.3",
