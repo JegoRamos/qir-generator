@@ -18,7 +18,7 @@
     "moment": "^2.24.0",
     "pdfkit": "^0.10.0",
     "piexifjs": "^1.0.6",
-    "read-excel-file": "^4.0.3",
+    "read-excel-file": "^5.5.0",
     "yargs": "^14.2.0"
   },
   "devDependencies": {
